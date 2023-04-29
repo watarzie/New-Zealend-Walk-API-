@@ -20,7 +20,7 @@ namespace NZWalksAPI.Repositories
 
         public async Task<List<Walk>> GetAllAsync()
         {
-            return await _dbContext.Walks.ToListAsync();
+            return await _dbContext.Walks.Include("Difficulty").Include("Region").ToListAsync(); // we are able to get data to dıffıculty and Region. That is Navigation properties.
         }
     }
 }
