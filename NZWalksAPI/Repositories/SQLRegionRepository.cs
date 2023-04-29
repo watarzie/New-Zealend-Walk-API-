@@ -29,7 +29,7 @@ namespace NZWalksAPI.Repositories
             }
 
             _dbContext.Regions.Remove(existingRegion);
-            _dbContext.SaveChangesAsync();
+            _dbContext.SaveChanges();
 
             return existingRegion;
 
