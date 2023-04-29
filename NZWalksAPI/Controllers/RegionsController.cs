@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using NZWalksAPI.Data;
 using NZWalksAPI.Models.Domain;
@@ -14,11 +15,13 @@ namespace NZWalksAPI.Controllers
     {
         private readonly NZWalksDbContext _dbContext;
         private readonly IRegionRepository _regionRepository;
+        private readonly IMapper _mapper;
 
-        public RegionsController(NZWalksDbContext dbContext, IRegionRepository regionRepository)
+        public RegionsController(NZWalksDbContext dbContext, IRegionRepository regionRepository, IMapper mapper)
         {
             _dbContext = dbContext;
             _regionRepository = regionRepository;
+            _mapper= mapper;
         }
         // GET ALL REGIONS
         // GET: https://localhost:portnumber:api/regions this is the restfull url
@@ -26,23 +29,9 @@ namespace NZWalksAPI.Controllers
         public async Task<IActionResult> GetAll()
         {
             // Get data from database --> domain models
-            var regions = await _regionRepository.GetAllAsync(); // That return us to Region table datas.When we do it this lines async it will work asychenronus.İf process stop or late it's going on the next lines
-
-            //map domain models to DTOs
-            var regionsDto = new List<RegionDto>(); // in later lessons we will use AutoMapper
-            foreach (var region in regions)
-            {
-                regionsDto.Add(new RegionDto
-                {
-                    Id = region.Id,
-                    Name = region.Name,
-                    Code = region.Code,
-                    RegionImageUrl = region.RegionImageUrl
-                });
-            }
-
+            var regionsDomain = await _regionRepository.GetAllAsync(); // That return us to Region table datas.When we do it this lines async it will work asychenronus.İf process stop or late it's going on the next lines
             // return DTOs
-            return Ok(regions);
+            return Ok(_mapper.Map<List<RegionDto>>(regionsDomain));
         }
 
         //Get single region (Get region by id)
@@ -58,42 +47,20 @@ namespace NZWalksAPI.Controllers
                 return NotFound();
             }
 
-            var regionDto = new RegionDto
-            {
-                Id = regionDomain.Id,
-                Name = regionDomain.Name,
-                Code = regionDomain.Code,
-                RegionImageUrl = regionDomain.RegionImageUrl
-            };
-
+            //Map/Convert Region Domain Model to Region DTO
             // return RegionDto
-            return Ok(regionDto);
+            return Ok(_mapper.Map<RegionDto>(regionDomain));
         }
         //post to create new region
         //post:https//localhost:portnumber/api/regions
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] AddRegionRequestDto addRegionRequestDto)
         {
-            // map or convert dto to domain model
-            //use domain model to create region
-            var regionDomainModel = new Region
-            {
-                Code = addRegionRequestDto.Code,
-                Name = addRegionRequestDto.Name,
-                RegionImageUrl = addRegionRequestDto.RegionImageUrl
-            };
+            var regionDomainModel = _mapper.Map<Region>(addRegionRequestDto); // addRegionRequestDto to Region mappings with Automapper
 
             regionDomainModel = await _regionRepository.CreateAsync(regionDomainModel);
 
-            // map domain model back to dto
-
-            var regionDto = new RegionDto // later lessons we will use AutoMapper
-            {
-                Id = regionDomainModel.Id,
-                Code = regionDomainModel.Code,
-                Name = regionDomainModel.Name,
-                RegionImageUrl = regionDomainModel.RegionImageUrl
-            };
+            var regionDto = _mapper.Map<RegionDto>(regionDomainModel); // regionDomainModel to RegionDto mappings with AutoMapper
 
             return CreatedAtAction(nameof(GetById), new { id = regionDomainModel.Id }, regionDto); // return 201 http response that means created succesfully
 
@@ -104,12 +71,8 @@ namespace NZWalksAPI.Controllers
         [Route("{id:Guid}")]
         public async Task<IActionResult> Update([FromRoute] Guid id, [FromBody] UpdateRegionRequestDto updateRegionRequestDto)
         {
-            var regionDomainModel = new Region
-            {
-                Code = updateRegionRequestDto.Code,
-                Name = updateRegionRequestDto.Name,
-                RegionImageUrl = updateRegionRequestDto.RegionImageUrl
-            };
+            var regionDomainModel = _mapper.Map<Region>(updateRegionRequestDto);
+
             // check if region exists
             regionDomainModel = await _regionRepository.UpdateAsync(id, regionDomainModel);
 
@@ -117,17 +80,8 @@ namespace NZWalksAPI.Controllers
             {
                 return NotFound();
             }
-
-            // Convert Domain Model to Dto
-            var regionDto = new RegionDto
-            {
-                Id = regionDomainModel.Id,
-                Code = regionDomainModel.Code,
-                Name = regionDomainModel.Name,
-                RegionImageUrl = regionDomainModel.RegionImageUrl
-            };
-
-            return Ok(regionDto);
+            
+            return Ok(_mapper.Map<UpdateRegionRequestDto>(regionDomainModel));
         }
         //Delete region
         //delete:https//localhost:portnumber/api/regions/{id}
@@ -142,17 +96,8 @@ namespace NZWalksAPI.Controllers
             }
 
             // return the deleted region back
-            // map domain model to dto
 
-            var regionDto = new RegionDto
-            {
-                Id = regionDomainModel.Id,
-                Code = regionDomainModel.Code,
-                Name = regionDomainModel.Name,
-                RegionImageUrl = regionDomainModel.RegionImageUrl
-            };
-
-            return Ok(regionDto);
+            return Ok(_mapper.Map<RegionDto>(regionDomainModel)); // regionDomainModel to RegionDto mappings with AutoMapper..!
         }
 
     }
