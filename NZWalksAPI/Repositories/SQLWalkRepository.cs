@@ -55,7 +55,7 @@ namespace NZWalksAPI.Repositories
                 return null;
             }
 
-            _dbContext.Walks.Remove(existingWalk);
+            _dbContext.Walks.Remove(existingWalk); // Remove method does not have async.
             await _dbContext.SaveChangesAsync();
 
             return existingWalk;
