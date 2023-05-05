@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using NZWalksAPI.CustomActionFilters;
 using NZWalksAPI.Data;
 using NZWalksAPI.Models.Domain;
 using NZWalksAPI.Models.DTO;
@@ -19,7 +20,7 @@ namespace NZWalksAPI.Controllers
         public RegionsController(IRegionRepository regionRepository, IMapper mapper)
         {
             _regionRepository = regionRepository;
-            _mapper= mapper;
+            _mapper = mapper;
         }
         // GET ALL REGIONS
         // GET: https://localhost:portnumber:api/regions this is the restfull url
@@ -52,45 +53,39 @@ namespace NZWalksAPI.Controllers
         //post to create new region
         //post:https//localhost:portnumber/api/regions
         [HttpPost]
+        [ValidateModel]
         public async Task<IActionResult> Create([FromBody] AddRegionRequestDto addRegionRequestDto)
         {
-            if(ModelState.IsValid)
-            {
-                var regionDomainModel = _mapper.Map<Region>(addRegionRequestDto); // addRegionRequestDto to Region mappings with Automapper
 
-                regionDomainModel = await _regionRepository.CreateAsync(regionDomainModel);
+            var regionDomainModel = _mapper.Map<Region>(addRegionRequestDto); // addRegionRequestDto to Region mappings with Automapper
 
-                var regionDto = _mapper.Map<RegionDto>(regionDomainModel); // regionDomainModel to RegionDto mappings with AutoMapper
+            regionDomainModel = await _regionRepository.CreateAsync(regionDomainModel);
 
-                return CreatedAtAction(nameof(GetById), new { id = regionDomainModel.Id }, regionDto); // return 201 http response that means created succesfully
-            }
+            var regionDto = _mapper.Map<RegionDto>(regionDomainModel); // regionDomainModel to RegionDto mappings with AutoMapper
 
-            else { return BadRequest(); }
-
+            return CreatedAtAction(nameof(GetById), new { id = regionDomainModel.Id }, regionDto); // return 201 http response that means created succesfully
 
         }
         // Update Region
         // put: https//localhost:portnumber/api/regions/{id}
         [HttpPut]
         [Route("{id:Guid}")]
+        [ValidateModel]
         public async Task<IActionResult> Update([FromRoute] Guid id, [FromBody] UpdateRegionRequestDto updateRegionRequestDto)
         {
-            if(ModelState.IsValid)
+
+            var regionDomainModel = _mapper.Map<Region>(updateRegionRequestDto);
+
+            // check if region exists
+            regionDomainModel = await _regionRepository.UpdateAsync(id, regionDomainModel);
+
+            if (regionDomainModel == null)
             {
-                var regionDomainModel = _mapper.Map<Region>(updateRegionRequestDto);
-
-                // check if region exists
-                regionDomainModel = await _regionRepository.UpdateAsync(id, regionDomainModel);
-
-                if (regionDomainModel == null)
-                {
-                    return NotFound();
-                }
-
-                return Ok(_mapper.Map<UpdateRegionRequestDto>(regionDomainModel));
+                return NotFound();
             }
 
-            else { return BadRequest(); }
+            return Ok(_mapper.Map<UpdateRegionRequestDto>(regionDomainModel));
+
         }
         //Delete region
         //delete:https//localhost:portnumber/api/regions/{id}
@@ -98,7 +93,7 @@ namespace NZWalksAPI.Controllers
         [Route("{id:Guid}")]
         public async Task<IActionResult> Delete([FromRoute] Guid id)
         {
-            var regionDomainModel =  await _regionRepository.DeleteAsync(id);
+            var regionDomainModel = await _regionRepository.DeleteAsync(id);
             if (regionDomainModel == null)
             {
                 return NotFound();
