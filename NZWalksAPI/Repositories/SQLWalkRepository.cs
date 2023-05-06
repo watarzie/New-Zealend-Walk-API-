@@ -11,7 +11,8 @@ namespace NZWalksAPI.Repositories
         {
             _dbContext = dbContext;
         }
-        public async Task<List<Walk>> GetAllAsync(string? filterOn = null, string? filterQuery = null, string? sortBy = null, bool isAscending = true)
+        public async Task<List<Walk>> GetAllAsync(string? filterOn = null, string? filterQuery = null, string? sortBy = null, bool isAscending = true, 
+            int pageNumber = 1, int pageSize = 1000)
         {
             var walks = _dbContext.Walks.Include("Difficulty").Include("Region").AsQueryable();
 
@@ -40,7 +41,11 @@ namespace NZWalksAPI.Repositories
 
             }
 
-            return await walks.ToListAsync();
+            //Pagination
+
+            var skipResults =(pageNumber -1) * pageSize; // if the pagenumber is 1 than skip is zero so we are in first page.if page number is two than we skip for example five result.
+
+            return await walks.Skip(skipResults).Take(pageSize).ToListAsync(); // for example skip ten result and take ten results
 
             //return await _dbContext.Walks.Include("Difficulty").Include("Region").ToListAsync(); // we are able to get data to dıffıculty and Region. This is Navigation properties.
         }
