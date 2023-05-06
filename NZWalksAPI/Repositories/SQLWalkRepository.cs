@@ -11,16 +11,31 @@ namespace NZWalksAPI.Repositories
         {
             _dbContext = dbContext;
         }
-        public async Task<List<Walk>> GetAllAsync(string? filterOn = null, string? filterQuery = null)
+        public async Task<List<Walk>> GetAllAsync(string? filterOn = null, string? filterQuery = null, string? sortBy = null, bool isAscending = true)
         {
             var walks = _dbContext.Walks.Include("Difficulty").Include("Region").AsQueryable();
 
             //Filtering
-            if(string.IsNullOrEmpty(filterOn) == false && string.IsNullOrEmpty(filterQuery) == false)
+            if (string.IsNullOrEmpty(filterOn) == false && string.IsNullOrEmpty(filterQuery) == false)
             {
-                if(filterOn.Equals("Name",StringComparison.OrdinalIgnoreCase))
+                if (filterOn.Equals("Name", StringComparison.OrdinalIgnoreCase))
                 {
                     walks = walks.Where(x => x.Name.Contains(filterQuery));
+                }
+
+            }
+
+            //Sorting
+            if (string.IsNullOrEmpty(sortBy) == false) // that means it has a value
+            {
+                if (sortBy.Equals("Name", StringComparison.OrdinalIgnoreCase))
+                {
+                    walks = isAscending ? walks.OrderBy(x => x.Name) : walks.OrderByDescending(x => x.Name); // Ternary operator we use in here
+                }
+
+                else if (sortBy.Equals("Length", StringComparison.OrdinalIgnoreCase))
+                {
+                    walks = isAscending ? walks.OrderBy(x => x.LengthInKm) : walks.OrderByDescending(x => x.LengthInKm);
                 }
 
             }
@@ -45,7 +60,7 @@ namespace NZWalksAPI.Repositories
         public async Task<Walk> UpdateAsync(Guid id, Walk walk)
         {
             var existingWalk = await _dbContext.Walks.FirstOrDefaultAsync(x => x.Id == id);
-            if(existingWalk == null)
+            if (existingWalk == null)
             {
                 return null;
             }
@@ -64,7 +79,7 @@ namespace NZWalksAPI.Repositories
         public async Task<Walk> DeleteAsync(Guid id)
         {
             var existingWalk = await _dbContext.Walks.FirstOrDefaultAsync(x => x.Id == id);
-            if(existingWalk == null)
+            if (existingWalk == null)
             {
                 return null;
             }

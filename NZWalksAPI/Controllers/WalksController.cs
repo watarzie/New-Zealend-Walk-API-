@@ -22,12 +22,13 @@ namespace NZWalksAPI.Controllers
             _mapper = mapper;
         }
         //GET Walks
-        //GET: /api/walks?filterOn=Name&filterQuery=Track
+        //GET: /api/walks?filterOn=Name&filterQuery=Track&sortBy = Name&IsAscending = true
         [HttpGet]
        
-        public async Task<IActionResult> GetAll([FromQuery] string? filterOn, [FromQuery] string? filterQuery)
+        public async Task<IActionResult> GetAll([FromQuery] string? filterOn, [FromQuery] string? filterQuery,
+            [FromQuery] string? sortBy, [FromQuery] bool? isAscending )
         {
-            var walksDomainModel = await _walkRepository.GetAllAsync(filterOn,filterQuery);
+            var walksDomainModel = await _walkRepository.GetAllAsync(filterOn,filterQuery,sortBy,isAscending ?? true); // it is nullable than change it's true
             return Ok(_mapper.Map<List<WalkDto>>(walksDomainModel));
         }
         //Get Walk by Id
