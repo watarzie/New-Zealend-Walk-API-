@@ -30,7 +30,8 @@ namespace NZWalksAPI.Repositories
 
             var credentials = new SigningCredentials(key,SecurityAlgorithms.HmacSha256);
 
-            var token = new JwtSecurityToken(_configuration["Jwt:Issuer"],
+            var token = new JwtSecurityToken(
+                _configuration["Jwt:Issuer"],
                 _configuration["Jwt:Audience"],
                 claims,
                 expires:DateTime.Now.AddMinutes(15),
