@@ -11,7 +11,6 @@ namespace NZWalksAPI.Controllers
     // https://localhost:1234/api/regions the url will looks similarly.
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize] // any method inside this controller is now need authorize for reach to endpoints
     public class RegionsController : ControllerBase
     {
         private readonly IRegionRepository _regionRepository;
@@ -25,6 +24,7 @@ namespace NZWalksAPI.Controllers
         // GET ALL REGIONS
         // GET: https://localhost:portnumber:api/regions this is the restfull url
         [HttpGet]
+        [Authorize(Roles ="Reader,Writer")]
         public async Task<IActionResult> GetAll()
         {
             // Get data from database --> domain models
@@ -37,6 +37,7 @@ namespace NZWalksAPI.Controllers
         //Get: https//localhost:portnumber/api/regions/{id}
         [HttpGet]
         [Route("{id:Guid}")] // this id pair to method parameter (Guid id) if we dont do that we will get error message.We do type safe route id:Guid
+        [Authorize(Roles = "Reader,Writer")]
         public async Task<IActionResult> GetById(Guid id)
         {
             var regionDomain = await _regionRepository.GetByIdAsync(id); // we implented repository pattern to controller getbyıd method
@@ -53,6 +54,7 @@ namespace NZWalksAPI.Controllers
         //post to create new region
         //post:https//localhost:portnumber/api/regions
         [HttpPost]
+        [Authorize(Roles = "Writer")]
         [ValidateModel]
         public async Task<IActionResult> Create([FromBody] AddRegionRequestDto addRegionRequestDto)
         {
@@ -70,6 +72,7 @@ namespace NZWalksAPI.Controllers
         // put: https//localhost:portnumber/api/regions/{id}
         [HttpPut]
         [Route("{id:Guid}")]
+        [Authorize(Roles = "Writer")]
         [ValidateModel]
         public async Task<IActionResult> Update([FromRoute] Guid id, [FromBody] UpdateRegionRequestDto updateRegionRequestDto)
         {
@@ -91,6 +94,7 @@ namespace NZWalksAPI.Controllers
         //delete:https//localhost:portnumber/api/regions/{id}
         [HttpDelete]
         [Route("{id:Guid}")]
+        [Authorize(Roles = "Writer")]
         public async Task<IActionResult> Delete([FromRoute] Guid id)
         {
             var regionDomainModel = await _regionRepository.DeleteAsync(id);
